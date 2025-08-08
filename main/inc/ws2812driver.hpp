@@ -1,7 +1,8 @@
+#pragma once
+
 extern "C" {
 #include "ws2812.h"
 }
-#include "config.hpp"
 
 class ws2812Driver {
   public:

@@ -2,6 +2,9 @@
 
 static const char* TAG = "pca9955driver.cpp";
 
+// 1xxxxxxx: auto increment
+static const uint8_t PWM_addr[5] = {0x88, 0x8B, 0x8E, 0x91, 0x94};
+
 pca9955Driver::pca9955Driver() {
     i2c_activate = false;
 }

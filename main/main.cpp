@@ -3,27 +3,40 @@ extern "C" void app_main();
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#define STRIP_MAXIMUM_BRIGTNESS 63
+
+#define COLOR_GRB(g, r, b)                            \
+    {                                                 \
+        .green = (g / 255) * STRIP_MAXIMUM_BRIGTNESS, \
+        .red = (r / 255) * STRIP_MAXIMUM_BRIGTNESS,   \
+        .blue = (b / 255) * STRIP_MAXIMUM_BRIGTNESS,  \
+    }
+
+#define COLOR_RED COLOR_GRB(0, 255, 0)
+#define COLOR_GREEN COLOR_GRB(255, 0, 0)
+#define COLOR_BLUE COLOR_GRB(0, 0, 255)
+
 const static led_config_t config[4] = {
     {
-        .type = PCA9955,
+        .type = LED_TYPE_OF,
         .led_count = 1,
         .gpio_or_addr = 0x5C,
         .pca_channel = 0,
     },
     {
-        .type = WS2812,
+        .type = LED_TYPE_STRIP,
         .led_count = 8,
         .gpio_or_addr = 4,
         .pca_channel = 0,
     },
     {
-        .type = WS2812,
+        .type = LED_TYPE_STRIP,
         .led_count = 8,
         .gpio_or_addr = 5,
         .pca_channel = 0,
     },
     {
-        .type = PCA9955,
+        .type = LED_TYPE_OF,
         .led_count = 1,
         .gpio_or_addr = 0x5C,
         .pca_channel = 1,

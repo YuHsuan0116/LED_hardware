@@ -6,6 +6,7 @@ esp_err_t i2c_bus_init(int SCL_GPIO, int SDA_GPIO, i2c_master_bus_handle_t* ret_
         .i2c_port = I2C_NUM_0,
         .scl_io_num = SCL_GPIO,
         .sda_io_num = SDA_GPIO,
+        .trans_queue_depth = MAX_PCA9955_NUM * 5,
         .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };

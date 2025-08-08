@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "config.h"
 #include "driver/rmt_encoder.h"
 #include "driver/rmt_tx.h"
 #include "esp_check.h"

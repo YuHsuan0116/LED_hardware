@@ -1,3 +1,5 @@
+#pragma once
+
 #include "channelhandle.hpp"
 
 class LedDriver {
@@ -14,5 +16,5 @@ class LedDriver {
   private:
     int ch_num;
     i2c_master_bus_handle_t bus_handle;
-    ChannelHandle channel_handle[MAX_CHANNEL_NUM];
+    static ChannelHandle channel_handle[MAX_CHANNEL_NUM];
 };
