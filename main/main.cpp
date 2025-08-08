@@ -1,39 +1,90 @@
 extern "C" void app_main();
 #include "LedDriver.hpp"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#define STRIP_MAXIMUM_BRIGTNESS 63
+#define MAXIMUM_BRIGTNESS 15
 
-#define COLOR_GRB(g, r, b)                            \
-    {                                                 \
-        .green = (g / 255) * STRIP_MAXIMUM_BRIGTNESS, \
-        .red = (r / 255) * STRIP_MAXIMUM_BRIGTNESS,   \
-        .blue = (b / 255) * STRIP_MAXIMUM_BRIGTNESS,  \
+#define COLOR_GRB(g, r, b)                                                      \
+    {                                                                           \
+        .green = (uint8_t)(((float)g / (float)255) * (float)MAXIMUM_BRIGTNESS), \
+        .red = (uint8_t)(((float)r / (float)255) * (float)MAXIMUM_BRIGTNESS),   \
+        .blue = (uint8_t)(((float)b / (float)255) * (float)MAXIMUM_BRIGTNESS),  \
     }
 
-#define COLOR_RED COLOR_GRB(0, 255, 0)
-#define COLOR_GREEN COLOR_GRB(255, 0, 0)
-#define COLOR_BLUE COLOR_GRB(0, 0, 255)
-
-const static led_config_t config[4] = {
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5C,
-        .pca_channel = 0,
-    },
+const static led_config_t config[] = {
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 8,
+        .led_count = 50,
         .gpio_or_addr = 4,
         .pca_channel = 0,
     },
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 8,
+        .led_count = 50,
+        .gpio_or_addr = 16,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 50,
+        .gpio_or_addr = 17,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 50,
         .gpio_or_addr = 5,
         .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 4,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 3,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 2,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 1,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5C,
+        .pca_channel = 4,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5C,
+        .pca_channel = 3,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5C,
+        .pca_channel = 2,
     },
     {
         .type = LED_TYPE_OF,
@@ -41,301 +92,146 @@ const static led_config_t config[4] = {
         .gpio_or_addr = 0x5C,
         .pca_channel = 1,
     },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5C,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5E,
+        .pca_channel = 4,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5E,
+        .pca_channel = 3,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5E,
+        .pca_channel = 2,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5E,
+        .pca_channel = 1,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5E,
+        .pca_channel = 0,
+    },
+
 };
 
-color_t test_green[8] = {COLOR_GREEN, COLOR_GREEN, COLOR_GREEN, COLOR_GREEN, COLOR_GREEN, COLOR_GREEN, COLOR_GREEN, COLOR_GREEN};
-color_t test_red[8] = {COLOR_RED, COLOR_RED, COLOR_RED, COLOR_RED, COLOR_RED, COLOR_RED, COLOR_RED, COLOR_RED};
-color_t test_blue[8] = {COLOR_BLUE, COLOR_BLUE, COLOR_BLUE, COLOR_BLUE, COLOR_BLUE, COLOR_BLUE, COLOR_BLUE, COLOR_BLUE};
-
-color_t color0[10][1] = {
-    {
-        COLOR_GRB(255, 255, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 0),
-    },
-    {
-        COLOR_GRB(255, 127, 0),
-    },
-    {
-        COLOR_GRB(255, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 255),
-    },
-    {
-        COLOR_GRB(0, 0, 255),
-    },
-    {
-        COLOR_GRB(139, 0, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 127),
-    },
-    {
-        COLOR_GRB(255, 0, 0),
-    },
-};
-color_t color1[10][8] = {
-    {
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-    },
-    {
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-    },
-    {
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-    },
-    {
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-    },
-    {
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-    },
-};
-
-color_t color2[10][8] = {
-    {
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-    },
-    {
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-    },
-    {
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-    },
-    {
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-    },
-    {
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-    },
-    {
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-        COLOR_GRB(255, 0, 0),
-    },
-    {
-        COLOR_GRB(255, 0, 0),
-        COLOR_GRB(255, 127, 0),
-        COLOR_GRB(255, 255, 0),
-        COLOR_GRB(0, 255, 0),
-        COLOR_GRB(0, 255, 255),
-        COLOR_GRB(0, 0, 255),
-        COLOR_GRB(139, 0, 255),
-        COLOR_GRB(255, 0, 127),
-    },
-};
-
-const color_t* color_ptr[10][4] = {
-    {color0[0], color1[0], color2[0], color0[1]},
-    {color0[1], color1[1], color2[1], color0[2]},
-    {color0[2], color1[2], color2[2], color0[3]},
-    {color0[3], color1[3], color2[3], color0[4]},
-    {color0[4], color1[4], color2[4], color0[5]},
-    {color0[5], color1[5], color2[5], color0[6]},
-    {color0[6], color1[6], color2[6], color0[7]},
-    {color0[7], color1[7], color2[7], color0[8]},
-    {color0[8], color1[8], color2[8], color0[9]},
-    {color0[9], color1[9], color2[9], color0[0]},
+color_t test[490] = {
+    COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0),
+    COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0),
+    COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),
+    COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208),
+    COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255),
+    COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),
+    COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249),
+    COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),
+    COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0),
+    COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0),
+    COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),
+    COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176),
+    COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255),
+    COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),
+    COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255),
+    COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),
+    COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),
+    COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0),
+    COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),
+    COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145),
+    COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255),
+    COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),
+    COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255),
+    COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124),
+    COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),
+    COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0),
+    COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),
+    COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114),
+    COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255),
+    COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),
+    COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255),
+    COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156),
+    COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),
+    COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0),
+    COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0),
+    COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),
+    COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255),
+    COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),
+    COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255),
+    COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187),
+    COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),
+    COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0),
+    COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0),
+    COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),
+    COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239),
+    COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),
+    COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255),
+    COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218),
+    COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),
+    COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0),
+    COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0),
+    COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),
+    COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208),
+    COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255),
+    COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),
+    COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249),
+    COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),
+    COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0),
+    COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0),
+    COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),
+    COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176),
+    COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255),
+    COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),
+    COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255),
+    COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),
+    COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),  COLOR_GRB(93, 255, 0),
+    COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0), COLOR_GRB(255, 228, 0),
+    COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),  COLOR_GRB(255, 41, 0),
+    COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114), COLOR_GRB(255, 0, 145),
+    COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255), COLOR_GRB(176, 0, 255),
+    COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),  COLOR_GRB(0, 10, 255),
+    COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255), COLOR_GRB(0, 197, 255),
+    COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156), COLOR_GRB(0, 255, 124),
+    COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),  COLOR_GRB(0, 255, 0),   COLOR_GRB(31, 255, 0),  COLOR_GRB(62, 255, 0),
+    COLOR_GRB(93, 255, 0),  COLOR_GRB(124, 255, 0), COLOR_GRB(156, 255, 0), COLOR_GRB(187, 255, 0), COLOR_GRB(218, 255, 0), COLOR_GRB(249, 255, 0),
+    COLOR_GRB(255, 228, 0), COLOR_GRB(255, 197, 0), COLOR_GRB(255, 166, 0), COLOR_GRB(255, 135, 0), COLOR_GRB(255, 104, 0), COLOR_GRB(255, 72, 0),
+    COLOR_GRB(255, 41, 0),  COLOR_GRB(255, 10, 0),  COLOR_GRB(255, 0, 20),  COLOR_GRB(255, 0, 52),  COLOR_GRB(255, 0, 83),  COLOR_GRB(255, 0, 114),
+    COLOR_GRB(255, 0, 145), COLOR_GRB(255, 0, 176), COLOR_GRB(255, 0, 208), COLOR_GRB(255, 0, 239), COLOR_GRB(239, 0, 255), COLOR_GRB(208, 0, 255),
+    COLOR_GRB(176, 0, 255), COLOR_GRB(145, 0, 255), COLOR_GRB(114, 0, 255), COLOR_GRB(83, 0, 255),  COLOR_GRB(52, 0, 255),  COLOR_GRB(20, 0, 255),
+    COLOR_GRB(0, 10, 255),  COLOR_GRB(0, 41, 255),  COLOR_GRB(0, 72, 255),  COLOR_GRB(0, 104, 255), COLOR_GRB(0, 135, 255), COLOR_GRB(0, 166, 255),
+    COLOR_GRB(0, 197, 255), COLOR_GRB(0, 228, 255), COLOR_GRB(0, 255, 249), COLOR_GRB(0, 255, 218), COLOR_GRB(0, 255, 187), COLOR_GRB(0, 255, 156),
+    COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),
 };
 
 void app_main() {
     LedDriver driver;
-    driver.config(config, 4);
-    vTaskDelay(pdMS_TO_TICKS(1000));
-
-    driver.part_test(0, test_red);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(0, test_green);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(0, test_blue);
-    vTaskDelay(pdMS_TO_TICKS(500));
-
-    driver.part_test(1, test_red);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(1, test_green);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(1, test_blue);
-    vTaskDelay(pdMS_TO_TICKS(500));
-
-    driver.part_test(2, test_red);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(2, test_green);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(2, test_blue);
-    vTaskDelay(pdMS_TO_TICKS(500));
-
-    driver.part_test(3, test_red);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(3, test_green);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    driver.part_test(3, test_blue);
-    vTaskDelay(pdMS_TO_TICKS(500));
+    driver.config(config, 19);
+    driver.clear_frame();
 
     vTaskDelay(pdMS_TO_TICKS(1000));
-    for(int i = 0; i < 10; i++) {
-        driver.write(color_ptr[i]);
-        vTaskDelay(pdMS_TO_TICKS(200));
+    for(int i = 0; i < 50; i++) {
+        color_t* ptr[19];
+        for(int j = 0; j < 19; j++) {
+            ptr[j] = &test[i + j];
+        }
+        driver.write((const color_t**)ptr);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
+
+    driver.clear_frame();
     driver.reset();
     vTaskDelay(pdMS_TO_TICKS(100));
 }
