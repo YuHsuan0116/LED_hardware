@@ -5,7 +5,7 @@ extern "C" {
 }
 
 #define IREFALL_addr 0x45
-#define OF_MAXIMUM_BRIGHTNESS 63
+#define OF_MAXIMUM_BRIGHTNESS 255
 
 class pca9955Driver {
   public:

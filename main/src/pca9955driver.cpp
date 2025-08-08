@@ -17,7 +17,7 @@ esp_err_t pca9955Driver::config(const led_config_t config) {
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = addr,
-        .scl_speed_hz = 100000,
+        .scl_speed_hz = 1000000,
     };
     i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
     uint8_t cmd[] = {IREFALL_addr, (uint8_t)OF_MAXIMUM_BRIGHTNESS};
@@ -28,7 +28,7 @@ esp_err_t pca9955Driver::config(const led_config_t config) {
 esp_err_t pca9955Driver::write(const color_t* colors) {
     uint8_t cmd[] = {PWM_addr[pca_channel], colors[0].red, colors[0].green, colors[0].blue};
     i2c_master_transmit(dev_handle, cmd, sizeof(cmd), -1);
-    i2c_master_bus_wait_all_done(bus_handle, -1);
+    // i2c_master_bus_wait_all_done(bus_handle, -1);
     return ESP_OK;
 }
 
