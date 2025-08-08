@@ -1,6 +1,7 @@
-extern "C" {
+#ifndef WS2812DRIVER_H
+#define WS2812DRIVER_H
+
 #include "ws2812.h"
-}
 #include "config.hpp"
 
 class ws2812Driver {
@@ -17,3 +18,5 @@ class ws2812Driver {
     rmt_channel_handle_t channel;
     rmt_encoder_handle_t encoder;
 };
+
+#endif

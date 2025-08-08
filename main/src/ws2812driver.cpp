@@ -1,11 +1,12 @@
-#include "ws2812driver.hpp"
+#include "../inc/ws2812driver.hpp"
 
 static rmt_transmit_config_t tx_config = {
     .loop_count = 0,
 };
 
-ws2812Driver::ws2812Driver() {
+ws2812Driver::ws2812Driver(){
     rmt_activate = false;
+    led_count = -1;
 }
 
 esp_err_t ws2812Driver::config(const led_config_t config) {

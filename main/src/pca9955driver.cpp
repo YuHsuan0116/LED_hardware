@@ -1,10 +1,9 @@
-#include "pca9955driver.hpp"
+#include "../inc/pca9955driver.hpp"
 
 static const char* TAG = "pca9955driver.cpp";
 
-pca9955Driver::pca9955Driver() {
-    i2c_activate = false;
-}
+// 1xxxxxxx: auto increment
+static const uint8_t PWM_addr[5] = {0x88, 0x8B, 0x8E, 0x91, 0x94};
 
 esp_err_t pca9955Driver::config(const led_config_t config) {
     pca_channel = config.pca_channel;
@@ -17,7 +16,7 @@ esp_err_t pca9955Driver::config(const led_config_t config) {
         .scl_speed_hz = 100000,
     };
     i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
-    uint8_t cmd[] = {IREFALL_addr, (uint8_t)OF_MAXIMUM_BRIGHTNESS};
+    uint8_t cmd[] = {IREFALL, (uint8_t)MAXIMUM_BRIGHTNESS};
     i2c_master_transmit(dev_handle, cmd, sizeof(cmd), -1);
     return ESP_OK;
 }

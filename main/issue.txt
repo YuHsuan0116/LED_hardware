@@ -1,0 +1,53 @@
+1. What is the following array in LedDriver.cpp? Please remove it if it is not necessary.
+const static color_t blank[127] = {{
+    .green = 0,
+    .red = 0,
+    .blue = 0,
+}};
+##blank is used to clear frame, required when calling LedDriver::clear_frame
+
+2. Please do not initialize the members in the class definition, the initialization should be done in the constructor if the init is essential!
+##if it's value such as -1 to avoid call before corect initialize, do we have to edit it?
+
+3. Please add #ifdef FILE_NAME_H and #endif at the top and the bottom of all the header files to avoid multiple include leaded error.
+##done
+
+4. Please separate move the function implementation outside the class definition.
+##done
+
+5. Please add some comments to explain some of the variables and macros. For example:
+in pca9955.h
+#define IREFALL 0x45
+#define MAXIMUM_BRIGHTNESS 63
+
+6. Please use macro to express some numerics. For example, in LedDriver.hpp:
+ChannelHandle channel_handle[50];
+You should replace it to
+
+#define MAX_NUM_CH 50
+ChannelHandle channel_handle[50];
+
+##it's there any other needed to change?
+7. Please take the advantage of enumeration. For example, there should be a enumeration for led type like:
+enum LED_TYPE_t
+{
+    LED_TYPE_STRIP,
+    LED_TYPE_OF,
+};
+then, the determination for the led type can be expressed like this:
+
+if(config.type == LED_TYPE_STRIP) {
+        rmt_activate = true;
+        new_ws2812b_channel(config.gpio_or_addr, &channel);
+        new_ws2812b_encoder(&encoder);
+}
+which avoids the implicit expression of a number 1.
+also, the definition of led_config_t will become
+
+struct led_config_t {
+    LED_TYPE_t type : 1;
+    uint8_t led_count : 7;
+    uint8_t gpio_or_addr;
+    uint8_t pca_channel;
+};
+##type is now using

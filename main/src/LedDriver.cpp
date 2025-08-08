@@ -1,4 +1,4 @@
-#include "LedDriver.hpp"
+#include "../inc/LedDriver.hpp"
 
 const static color_t blank[127] = {{
     .green = 0,
@@ -8,8 +8,6 @@ const static color_t blank[127] = {{
 
 LedDriver::LedDriver() {
     i2c_bus_init(I2C_MASTER_SCL_IO, I2C_MASTER_SDA_IO, &bus_handle);
-    ch_num = -1;
-    bus_handle = NULL;
 }
 
 LedDriver::~LedDriver() {
@@ -50,6 +48,7 @@ esp_err_t LedDriver::reset() {
 }
 
 esp_err_t LedDriver::clear_frame() {
+    printf("clear_frame!\n");
     for(int i = 0; i < ch_num; i++) {
         channel_handle[i].write(blank);
     }

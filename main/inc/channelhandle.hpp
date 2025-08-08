@@ -1,3 +1,6 @@
+#ifndef CHANNEL_HANNDLE_HPP
+#define CHANNEL_HANDLE_HPP
+
 #include "pca9955driver.hpp"
 #include "ws2812driver.hpp"
 
@@ -9,7 +12,9 @@ class ChannelHandle {
     esp_err_t wait_done();
 
   private:
-    LED_TYPE_t type;
+    Type type;
     pca9955Driver pca9955;
     ws2812Driver ws2812;
 };
+
+#endif

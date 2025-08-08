@@ -1,4 +1,9 @@
+#ifndef LED_DRIVER_HPP
+#define LED_DRIVER_HPP
+
 #include "channelhandle.hpp"
+
+#define max_num_ch 50 //maximum number of channels
 
 class LedDriver {
   public:
@@ -12,7 +17,9 @@ class LedDriver {
     esp_err_t wait_all_done();
 
   private:
-    int ch_num;
+    int ch_num = -1;
     i2c_master_bus_handle_t bus_handle;
-    ChannelHandle channel_handle[MAX_CHANNEL_NUM];
+    ChannelHandle channel_handle[max_num_ch] = {};
 };
+
+#endif
