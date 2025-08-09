@@ -1,5 +1,6 @@
 #include "LedDriver.hpp"
 #include "esp_timer.h"
+#include "esp_log.h"
 
 const static color_t blank[127] = {{
     .green = 0,

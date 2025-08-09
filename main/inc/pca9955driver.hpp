@@ -12,6 +12,7 @@ class pca9955Driver {
     pca9955Driver();
     esp_err_t config(const led_config_t config);
     esp_err_t write(const color_t* colors);
+    esp_err_t read(const color_t* colors);
     esp_err_t detach();
     esp_err_t wait_done();
 
