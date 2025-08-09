@@ -16,25 +16,25 @@ extern "C" void app_main();
 const static led_config_t config[] = {
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 50,
+        .led_count = 100,
         .gpio_or_addr = 4,
         .pca_channel = 0,
     },
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 50,
+        .led_count = 100,
         .gpio_or_addr = 16,
         .pca_channel = 0,
     },
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 50,
+        .led_count = 100,
         .gpio_or_addr = 17,
         .pca_channel = 0,
     },
     {
         .type = LED_TYPE_STRIP,
-        .led_count = 50,
+        .led_count = 100,
         .gpio_or_addr = 5,
         .pca_channel = 0,
     },
@@ -128,6 +128,60 @@ const static led_config_t config[] = {
         .gpio_or_addr = 0x5E,
         .pca_channel = 0,
     },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 100,
+        .gpio_or_addr = 33,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 4,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 3,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 2,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 1,
+    },
+    {
+        .type = LED_TYPE_OF,
+        .led_count = 1,
+        .gpio_or_addr = 0x5B,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 100,
+        .gpio_or_addr = 26,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 100,
+        .gpio_or_addr = 27,
+        .pca_channel = 0,
+    },
+    {
+        .type = LED_TYPE_STRIP,
+        .led_count = 100,
+        .gpio_or_addr = 32,
+        .pca_channel = 0,
+    },
 
 };
 
@@ -216,18 +270,24 @@ color_t test[490] = {
     COLOR_GRB(0, 255, 124), COLOR_GRB(0, 255, 93),  COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),
 };
 
+uint64_t start;
+uint64_t end;
+color_t* ptr[28];
+
 void app_main() {
     LedDriver driver;
-    driver.config(config, 19);
+    driver.config(config, 28);
     driver.clear_frame();
 
     vTaskDelay(pdMS_TO_TICKS(1000));
-    for(int i = 0; i < 50; i++) {
-        color_t* ptr[19];
-        for(int j = 0; j < 19; j++) {
+    for(int i = 0; i < 100; i++) {
+        for(int j = 0; j < 28; j++) {
             ptr[j] = &test[i + j];
         }
+        start = esp_timer_get_time();
         driver.write((const color_t**)ptr);
+        end = esp_timer_get_time();
+        printf("timer: %lld\n", end - start);
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 
