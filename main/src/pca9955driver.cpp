@@ -1,5 +1,6 @@
 #include "pca9955driver.hpp"
 #include "esp_timer.h"
+#include "esp_log.h"
 
 static const char* TAG = "pca9955driver.cpp";
 static uint8_t cmd[4];
@@ -40,6 +41,13 @@ esp_err_t pca9955Driver::write(const color_t* colors) {
     // uint64_t end = esp_timer_get_time();
     // printf("timer: %lld\n", end - start);
     // i2c_master_bus_wait_all_done(bus_handle, -1);
+    return ESP_OK;
+}
+
+esp_err_t pca9955Driver::read(const color_t* colors) {
+    uint8_t cmd[] = {PWM_addr[pca_channel], colors[0].red, colors[0].green, colors[0].blue};
+    i2c_master_receive(dev_handle, cmd, sizeof(cmd), -1);
+    i2c_master_bus_wait_all_done(bus_handle, -1);
     return ESP_OK;
 }
 

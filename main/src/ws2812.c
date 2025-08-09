@@ -1,4 +1,5 @@
 #include "ws2812.h"
+#include "esp_log.h"
 
 static const char* TAG = "ws2812.c";
 

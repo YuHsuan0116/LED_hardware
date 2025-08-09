@@ -1,4 +1,5 @@
 #include "ws2812driver.hpp"
+#include "esp_log.h"
 
 static rmt_transmit_config_t tx_config = {
     .loop_count = 0,
