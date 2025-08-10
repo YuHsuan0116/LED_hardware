@@ -4,8 +4,8 @@
 #define I2C_MASTER_SCL_IO 22
 #define I2C_MASTER_SDA_IO 21
 
-#define MAX_CHANNEL_NUM 50
-#define MAX_PCA9955_NUM 10
+#define MAX_CHANNEL_NUM 28
+#define MAX_PCA9955_NUM 4
 
 typedef struct {
     uint8_t green;

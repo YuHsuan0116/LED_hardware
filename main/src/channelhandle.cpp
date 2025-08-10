@@ -1,6 +1,7 @@
 #include "channelhandle.hpp"
-#include "esp_log.h"
 #include <string.h>
+#include "esp_log.h"
+
 static const char* tag = "channel handle";
 
 esp_err_t ChannelHandle::config(const led_config_t config) {
@@ -44,12 +45,12 @@ esp_err_t ChannelHandle::write_verify(const color_t* colors) {
         pca9955.write(colors);
         memset(read_buf, 0, sizeof(read_buf));
         pca9955.read(read_buf);
-        if(memcmp(&colors[0], &read_buf[0], sizeof(color_t))){
+        if(memcmp(&colors[0], &read_buf[0], sizeof(color_t))) {
             return ESP_OK;
-        }else{
+        } else {
             return ESP_FAIL;
             ESP_LOGE("pca9955", "verify failure");
-        }   
+        }
     }
     return ESP_FAIL;
 }
@@ -59,8 +60,7 @@ esp_err_t ChannelHandle::detach() {
         return ws2812.detach();
     }
     if(type == LED_TYPE_OF) {
-        return ESP_OK;
-        // return pca9955.detach();
+        return pca9955.detach();
     }
     return ESP_FAIL;
 }
