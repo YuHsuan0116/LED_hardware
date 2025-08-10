@@ -41,11 +41,14 @@ esp_err_t pca9955Driver::read(const color_t* colors) {
 }
 
 esp_err_t pca9955Driver::detach() {
-    if(idx != -1 && --use_count[idx] == 0) {
-        registered--;
-        printf("remove %d registered %d \n", idx, registered);
-        i2c_master_bus_rm_device(dev_handles[idx]);
-        idx = -1;
+    if(idx != -1) {
+        if(--use_count[idx] == 0) {
+            registered--;
+            i2c_master_bus_rm_device(dev_handles[idx]);
+            pca_addr[idx] = 0;
+            dev_handles[idx] = NULL;
+            idx = -1;
+        }
     }
     return ESP_OK;
 }

@@ -277,17 +277,16 @@ color_t* ptr[23];
 void app_main() {
     LedDriver driver;
     driver.config(config, 23);
-    driver.clear_frame();
 
     vTaskDelay(pdMS_TO_TICKS(1000));
     for(int i = 0; i < 100; i++) {
         for(int j = 0; j < 23; j++) {
             ptr[j] = &test[i + j];
         }
-        start = esp_timer_get_time();
+        // start = esp_timer_get_time();
         driver.write((const color_t**)ptr);
-        end = esp_timer_get_time();
-        printf("timer: %lld\n", end - start);
+        // end = esp_timer_get_time();
+        // printf("timer: %lld\n", end - start);
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 

@@ -1,6 +1,9 @@
 #include "LedDriver.hpp"
+#include "esp_check.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+
+static const char* TAG = "LedDriver.cpp";
 
 const static color_t blank[127] = {{
     .green = 0,
@@ -13,7 +16,6 @@ ChannelHandle LedDriver::channel_handle[MAX_CHANNEL_NUM];
 LedDriver::LedDriver() {
     i2c_bus_init(I2C_MASTER_SCL_IO, I2C_MASTER_SDA_IO, &bus_handle);
     ch_num = -1;
-    bus_handle = NULL;
 }
 
 LedDriver::~LedDriver() {
@@ -23,6 +25,9 @@ LedDriver::~LedDriver() {
 }
 
 esp_err_t LedDriver::config(const led_config_t* configs, const int _ch_num) {
+    if(ch_num != -1) {
+        reset();
+    }
     ch_num = _ch_num;
     for(int i = 0; i < ch_num; i++) {
         channel_handle[i].config(configs[i]);
@@ -56,7 +61,6 @@ esp_err_t LedDriver::clear_frame() {
     for(int i = 0; i < ch_num; i++) {
         channel_handle[i].write(blank);
     }
-    wait_all_done();
     return ESP_OK;
 }
 
