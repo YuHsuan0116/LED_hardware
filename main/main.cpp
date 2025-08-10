@@ -134,36 +134,36 @@ const static led_config_t config[] = {
         .gpio_or_addr = 33,
         .pca_channel = 0,
     },
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5B,
-        .pca_channel = 4,
-    },
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5B,
-        .pca_channel = 3,
-    },
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5B,
-        .pca_channel = 2,
-    },
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5B,
-        .pca_channel = 1,
-    },
-    {
-        .type = LED_TYPE_OF,
-        .led_count = 1,
-        .gpio_or_addr = 0x5B,
-        .pca_channel = 0,
-    },
+    // {
+    //     .type = LED_TYPE_OF,
+    //     .led_count = 1,
+    //     .gpio_or_addr = 0x5B,
+    //     .pca_channel = 4,
+    // },
+    // {
+    //     .type = LED_TYPE_OF,
+    //     .led_count = 1,
+    //     .gpio_or_addr = 0x5B,
+    //     .pca_channel = 3,
+    // },
+    // {
+    //     .type = LED_TYPE_OF,
+    //     .led_count = 1,
+    //     .gpio_or_addr = 0x5B,
+    //     .pca_channel = 2,
+    // },
+    // {
+    //     .type = LED_TYPE_OF,
+    //     .led_count = 1,
+    //     .gpio_or_addr = 0x5B,
+    //     .pca_channel = 1,
+    // },
+    // {
+    //     .type = LED_TYPE_OF,
+    //     .led_count = 1,
+    //     .gpio_or_addr = 0x5B,
+    //     .pca_channel = 0,
+    // },
     {
         .type = LED_TYPE_STRIP,
         .led_count = 100,
@@ -272,26 +272,26 @@ color_t test[490] = {
 
 uint64_t start;
 uint64_t end;
-color_t* ptr[28];
+color_t* ptr[23];
 
 void app_main() {
     LedDriver driver;
-    driver.config(config, 28);
+    driver.config(config, 23);
     driver.clear_frame();
 
     vTaskDelay(pdMS_TO_TICKS(1000));
     for(int i = 0; i < 100; i++) {
-        for(int j = 0; j < 28; j++) {
+        for(int j = 0; j < 23; j++) {
             ptr[j] = &test[i + j];
         }
         start = esp_timer_get_time();
         driver.write((const color_t**)ptr);
         end = esp_timer_get_time();
         printf("timer: %lld\n", end - start);
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 
     driver.clear_frame();
-    driver.reset();
+
     vTaskDelay(pdMS_TO_TICKS(100));
 }

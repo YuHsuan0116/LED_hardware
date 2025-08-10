@@ -1,6 +1,6 @@
 #include "LedDriver.hpp"
-#include "esp_timer.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 
 const static color_t blank[127] = {{
     .green = 0,
@@ -17,9 +17,9 @@ LedDriver::LedDriver() {
 }
 
 LedDriver::~LedDriver() {
-    // clear_frame();
-    // reset();
-    // i2c_del_master_bus(bus_handle);
+    clear_frame();
+    reset();
+    i2c_del_master_bus(bus_handle);
 }
 
 esp_err_t LedDriver::config(const led_config_t* configs, const int _ch_num) {
