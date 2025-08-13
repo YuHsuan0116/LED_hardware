@@ -1,10 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include "config.h"
 #include "driver/i2c_master.h"
-#include "esp_check.h"
-#include "esp_log.h"
 
 /**
  * @brief Initialize an I2C master bus on I2C_NUM_0.

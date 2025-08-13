@@ -1,5 +1,4 @@
 #include "ws2812driver.hpp"
-#include "esp_log.h"
 
 static const char* TAG = "ws2812driver";
 

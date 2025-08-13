@@ -1,7 +1,6 @@
 #include "ws2812.h"
-#include "esp_log.h"
 
-static const char* TAG = "ws2812.c";
+static const char* TAG = "ws2812";
 
 esp_err_t new_encoder(rmt_encoder_handle_t* ret_encoder) {
     encoder_config_t config = {

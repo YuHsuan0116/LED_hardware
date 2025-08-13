@@ -366,11 +366,11 @@ void app_main() {
             ptr[j] = &test[i + j];
         }
 
-        start = esp_timer_get_time();
+        // start = esp_timer_get_time();
         driver.write((const color_t**)ptr);
-        end = esp_timer_get_time();
+        // end = esp_timer_get_time();
+        // printf("time: %lld\n", end - start);
 
-        printf("timer: %lld\n", end - start);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 

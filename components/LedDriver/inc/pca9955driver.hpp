@@ -85,7 +85,7 @@ class pca9955Driver {
      * @return
      *  Index (0..MAX_PCA9955_NUM-1) on success; -1 on failure.
      */
-    int find(uint8_t addr);
+    int get_or_register_device(uint8_t addr);
 
   private:
     uint8_t addr;                       /**< I2C address of the device. */

@@ -1,6 +1,4 @@
 #include "pca9955driver.hpp"
-#include "esp_log.h"
-#include "esp_timer.h"
 
 static const char* TAG = "pca9955driver";
 static uint8_t pca_addr[MAX_PCA9955_NUM];
@@ -23,7 +21,7 @@ esp_err_t pca9955Driver::config(const led_config_t config) {
 
     ESP_RETURN_ON_ERROR(i2c_master_get_bus_handle(I2C_NUM_0, &bus_handle), TAG, "get_bus_handle failed");
 
-    int found = find(addr);
+    int found = get_or_register_device(addr);
     if(found < 0) {
         return ESP_FAIL;  // already logged inside find() if you add logs
     }
@@ -68,7 +66,7 @@ esp_err_t pca9955Driver::wait_done() {
     return ESP_OK;
 }
 
-int pca9955Driver::find(uint8_t addr) {
+int pca9955Driver::get_or_register_device(uint8_t addr) {
     // 1) Already registered?
     for(int i = 0; i < MAX_PCA9955_NUM; i++) {
         if(pca_addr[i] == addr) {

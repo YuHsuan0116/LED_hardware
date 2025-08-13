@@ -1,6 +1,4 @@
 #include "channelhandle.hpp"
-#include <string.h>
-#include "esp_log.h"
 
 static const char* TAG = "channelhandle";
 

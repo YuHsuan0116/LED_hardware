@@ -1,5 +1,9 @@
 #pragma once
 #include <stdint.h>
+#include <string.h>
+#include "esp_check.h"
+#include "esp_log.h"
+// #include "esp_timer.h"
 
 #ifdef __cplusplus
 extern "C" {
