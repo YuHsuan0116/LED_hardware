@@ -25,6 +25,12 @@
     "rmt_tx.h": "c",
     "rmt_encoder.h": "c",
     "complex": "cpp",
-    "random": "cpp"
+    "random": "cpp",
+    "bitset": "cpp",
+    "algorithm": "cpp",
+    "format": "cpp",
+    "memory": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp"
   }
 }

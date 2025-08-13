@@ -2,8 +2,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 
-static const char* TAG = "pca9955driver.cpp";
-static uint8_t cmd[4];
+static const char* TAG = "pca9955driver";
 static uint8_t pca_addr[MAX_PCA9955_NUM];
 static uint8_t use_count[MAX_PCA9955_NUM] = {0};
 static i2c_master_dev_handle_t dev_handles[MAX_PCA9955_NUM];
@@ -15,12 +14,23 @@ static const uint8_t PWM_addr[5] = {0x88, 0x8B, 0x8E, 0x91, 0x94};
 pca9955Driver::pca9955Driver() {}
 
 esp_err_t pca9955Driver::config(const led_config_t config) {
+    if(config.pca_channel > 4) {  // we only have 5 base addresses in PWM_addr[]
+        return ESP_ERR_INVALID_ARG;
+    }
+
     pca_channel = config.pca_channel;
     addr = config.gpio_or_addr;
-    i2c_master_get_bus_handle(I2C_NUM_0, &bus_handle);
-    idx = find(addr);
-    use_count[idx]++;
-    dev_handle = &dev_handles[idx];
+
+    ESP_RETURN_ON_ERROR(i2c_master_get_bus_handle(I2C_NUM_0, &bus_handle), TAG, "get_bus_handle failed");
+
+    int found = find(addr);
+    if(found < 0) {
+        return ESP_FAIL;  // already logged inside find() if you add logs
+    }
+
+    use_count[found]++;
+    dev_handle = dev_handles[found];
+    idx = found;
     return ESP_OK;
 }
 
@@ -29,27 +39,28 @@ esp_err_t pca9955Driver::write(const color_t* colors) {
     cmd[1] = colors[0].red;
     cmd[2] = colors[0].green;
     cmd[3] = colors[0].blue;
-    i2c_master_transmit(*dev_handle, cmd, sizeof(uint8_t) * 4, -1);
-    return ESP_OK;
-}
-
-esp_err_t pca9955Driver::read(const color_t* colors) {
-    uint8_t cmd[] = {PWM_addr[pca_channel], colors[0].red, colors[0].green, colors[0].blue};
-    i2c_master_receive(*dev_handle, cmd, sizeof(cmd), -1);
-    i2c_master_bus_wait_all_done(bus_handle, -1);
+    i2c_master_transmit(dev_handle, cmd, sizeof(uint8_t) * 4, -1);
     return ESP_OK;
 }
 
 esp_err_t pca9955Driver::detach() {
-    if(idx != -1) {
-        if(--use_count[idx] == 0) {
-            registered--;
-            i2c_master_bus_rm_device(dev_handles[idx]);
-            pca_addr[idx] = 0;
-            dev_handles[idx] = NULL;
-            idx = -1;
-        }
+    if(idx < 0) {
+        return ESP_ERR_INVALID_STATE;
     }
+
+    if(--use_count[idx] == 0) {
+        registered--;
+        esp_err_t rm_err = i2c_master_bus_rm_device(dev_handles[idx]);
+        // clear local registry slot regardless of rm_err, but still return error if any
+        pca_addr[idx] = 0;
+        dev_handles[idx] = NULL;
+        idx = -1;
+        dev_handle = nullptr;
+        return rm_err;
+    }
+
+    idx = -1;
+    dev_handle = nullptr;
     return ESP_OK;
 }
 
@@ -58,20 +69,45 @@ esp_err_t pca9955Driver::wait_done() {
 }
 
 int pca9955Driver::find(uint8_t addr) {
+    // 1) Already registered?
     for(int i = 0; i < MAX_PCA9955_NUM; i++) {
-        if(addr == pca_addr[i]) {
+        if(pca_addr[i] == addr) {
             return i;
         }
     }
+
+    // 2) Capacity check
+    if(registered >= MAX_PCA9955_NUM) {
+        return -1;
+    }
+
+    // 3) Add new device on the bus
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = addr,
-        .scl_speed_hz = 100000,
+        .scl_speed_hz = 100000,  // or 1000000 for Fm+
+        .scl_wait_us = 0,        // add: silence -Wmissing-field-initializers
+        .flags = {0},            // add: zero all flag bits
     };
-    pca_addr[registered] = addr;
-    i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handles[registered]);
-    cmd[0] = IREFALL_addr;
-    cmd[1] = (uint8_t)OF_MAXIMUM_BRIGHTNESS;
-    i2c_master_transmit(dev_handles[registered], cmd, sizeof(uint8_t) * 2, -1);
-    return registered++;
+
+    i2c_master_dev_handle_t dev = NULL;
+    esp_err_t err = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev);
+    if(err != ESP_OK || dev == NULL) {
+        return -1;
+    }
+
+    // 4) Initialize device (set IREFALL)
+    uint8_t local_cmd[2] = {IREFALL_addr, (uint8_t)OF_MAXIMUM_BRIGHTNESS};
+    err = i2c_master_transmit(dev, local_cmd, sizeof(local_cmd), -1);
+    if(err != ESP_OK) {
+        (void)i2c_master_bus_rm_device(dev);  // best-effort cleanup
+        return -1;
+    }
+
+    // 5) Commit to tables only after success
+    int index = registered;
+    pca_addr[index] = addr;
+    dev_handles[index] = dev;
+    registered++;
+    return index;
 }

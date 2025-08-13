@@ -351,25 +351,25 @@ color_t test[980] = {
     COLOR_GRB(0, 255, 62),  COLOR_GRB(0, 255, 31),
 };
 
-#define Channel 23
-
 uint64_t start;
 uint64_t end;
-color_t* ptr[Channel];
+color_t* ptr[28];
 
 void app_main() {
     LedDriver driver;
-    driver.config(config, Channel);
+    int ch_num = sizeof(config) / sizeof(config[0]);
+    driver.config(config, ch_num);
 
     vTaskDelay(pdMS_TO_TICKS(1000));
-    for(int i = 0; i < 800; i++) {
-        for(int j = 0; j < Channel; j++) {
+    for(int i = 0; i < 100; i++) {
+        for(int j = 0; j < ch_num; j++) {
             ptr[j] = &test[i + j];
         }
+
         start = esp_timer_get_time();
         driver.write((const color_t**)ptr);
-
         end = esp_timer_get_time();
+
         printf("timer: %lld\n", end - start);
         vTaskDelay(pdMS_TO_TICKS(50));
     }
