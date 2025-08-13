@@ -1,17 +1,21 @@
 #include "ws2812.h"
-#include "esp_log.h"
 
-static const char* TAG = "ws2812.c";
+static const char* TAG = "ws2812";
 
 esp_err_t new_encoder(rmt_encoder_handle_t* ret_encoder) {
     encoder_config_t config = {
         .resolution = WS2812_RESOLUTION,
     };
-    encoder_t* encoder = NULL;
-    encoder = rmt_alloc_encoder_mem(sizeof(encoder_t));
+
+    encoder_t* encoder = (encoder_t*)rmt_alloc_encoder_mem(sizeof(encoder_t));
+    if(!encoder) {
+        return ESP_ERR_NO_MEM;  // Allocation failed
+    }
+
     encoder->base.encode = encode;
     encoder->base.del = del_encoder;
     encoder->base.reset = encoder_reset;
+
     rmt_bytes_encoder_config_t bytes_encoder_config = {
         .bit0 =
             {
@@ -30,6 +34,7 @@ esp_err_t new_encoder(rmt_encoder_handle_t* ret_encoder) {
         .flags.msb_first = 1,
     };
     rmt_new_bytes_encoder(&bytes_encoder_config, &encoder->bytes_encoder);
+
     rmt_copy_encoder_config_t copy_encoder_config = {};
     rmt_new_copy_encoder(&copy_encoder_config, &encoder->copy_encoder);
 
@@ -40,6 +45,7 @@ esp_err_t new_encoder(rmt_encoder_handle_t* ret_encoder) {
         .level1 = 0,
         .duration1 = reset_ticks,
     };
+
     *ret_encoder = &encoder->base;
     return ESP_OK;
 }
@@ -57,7 +63,7 @@ esp_err_t new_channel(int gpio, rmt_channel_handle_t* ret_channel) {
     return ESP_OK;
 }
 
-size_t encode(rmt_encoder_t* encoder, rmt_channel_handle_t channel, const void* data, size_t data_size, rmt_encode_state_t* ret_state) {
+size_t IRAM_ATTR encode(rmt_encoder_t* encoder, rmt_channel_handle_t channel, const void* data, size_t data_size, rmt_encode_state_t* ret_state) {
     encoder_t* ws2812_encoder = __containerof(encoder, encoder_t, base);
     rmt_encoder_handle_t bytes_encoder = ws2812_encoder->bytes_encoder;
     rmt_encoder_handle_t copy_encoder = ws2812_encoder->copy_encoder;
@@ -72,9 +78,9 @@ size_t encode(rmt_encoder_t* encoder, rmt_channel_handle_t channel, const void* 
             }
             if(session_state & RMT_ENCODING_MEM_FULL) {
                 state |= RMT_ENCODING_MEM_FULL;
-                goto out;
+                break;  // stop encoding, skip reset code
             }
-        // fall-through
+            /* fall through */
         case 1:  // send reset code
             encoded_symbols +=
                 copy_encoder->encode(copy_encoder, channel, &ws2812_encoder->reset_code, sizeof(ws2812_encoder->reset_code), &session_state);
@@ -84,10 +90,10 @@ size_t encode(rmt_encoder_t* encoder, rmt_channel_handle_t channel, const void* 
             }
             if(session_state & RMT_ENCODING_MEM_FULL) {
                 state |= RMT_ENCODING_MEM_FULL;
-                goto out;
             }
+            break;
     }
-out:
+
     *ret_state = state;
     return encoded_symbols;
 }
