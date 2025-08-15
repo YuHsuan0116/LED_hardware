@@ -41,31 +41,31 @@ const static led_config_t config[] = {
     {
         .type = LED_TYPE_OF,
         .led_count = 1,
-        .gpio_or_addr = 0x5B,
+        .gpio_or_addr = 0x23,
         .pca_channel = 4,
     },
     {
         .type = LED_TYPE_OF,
         .led_count = 1,
-        .gpio_or_addr = 0x5B,
+        .gpio_or_addr = 0x23,
         .pca_channel = 3,
     },
     {
         .type = LED_TYPE_OF,
         .led_count = 1,
-        .gpio_or_addr = 0x5B,
+        .gpio_or_addr = 0x23,
         .pca_channel = 2,
     },
     {
         .type = LED_TYPE_OF,
         .led_count = 1,
-        .gpio_or_addr = 0x5B,
+        .gpio_or_addr = 0x23,
         .pca_channel = 1,
     },
     {
         .type = LED_TYPE_OF,
         .led_count = 1,
-        .gpio_or_addr = 0x5B,
+        .gpio_or_addr = 0x23,
         .pca_channel = 0,
     },
     {
